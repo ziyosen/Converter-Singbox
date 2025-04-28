@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+    content="Convert V2Ray accounts — including VMESS, VLESS, TROJAN, and SHADOWSOCKS — into Singbox configuration format easily. Powered by Mayumi Yui.">
+    <meta name="keywords" content="V2Ray, Singbox, VMESS, VLESS, TROJAN, SHADOWSOCKS, proxy, VPN, convert, mayumi yui, yumiwolker, mayumiyui">
+    <meta name="author" content="Mayumi Yui">
+    <meta name="robots" content="index, follow">
+
+    <link rel="icon" type="image/x-icon"
+    href="https://github.com/user-attachments/assets/b5feabb7-3f20-4028-9436-e3f3307dd2ae">
+    <title>Yumi - Convert</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // Configure Tailwind with dark mode
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-dark dark:text-gray-200 transition-colors duration-200">
+    <button id="theme-toggle" class="fixed top-5 right-5 bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg z-50 transition-transform hover:scale-110">
+        <i class="fas fa-moon text-gray-800 dark:hidden"></i>
+        <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+    </button>
+    
+    <div class="max-w-4xl mx-auto p-5">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+            <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">VPN Protocol to Sing-box Converter</h1>
+            
+            <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">👋  Instructions</h3>
+                <p class="mb-2">Paste your VPN configuration strings below (one per line) and click "Convert". Supported formats:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">vmess://...</code> - VMess protocol</li>
+                    <li><code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">vless://...</code> - VLess protocol</li>
+                    <li><code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">trojan://...</code> - Trojan protocol</li>
+                    <li><code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">ss://...</code> - Shadowsocks protocol</li>
+                </ul>
+            </div>
+            
+            <div class="bg-amber-50 dark:bg-blue-800/30 rounded-lg p-4 mb-6 border-l-4 border-amber-500 dark:border-blue-500">
+                <h3 class="text-lg font-semibold text-amber-800 dark:text-blue-300 mb-2">✨ Features</h3>
+                <p class="mb-2">Your configurations will be automatically added to:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Latency Test Group</strong> - For automatic latency-based selection</li>
+                    <li><strong>Manual Selector</strong> - For manual based selection</li>
+                </ul>
+
+                <p class="mt-2">The configuration name/tag will be preserved in all selectors.</p>
+                
+            </div>
+            
+            <div class="bg-emerald-50 dark:bg-emerald-900/30 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-2">🌟 About the Template</h3>
+                <p class="mb-2">This converter will integrate your VPN configurations into a comprehensive Sing-box template that includes:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>DNS configuration with multiple servers</li>
+                    <li>TUN and mixed inbound connections</li>
+                    <li>Outbound selectors for different regions</li>
+                    <li>Ad blocking rules</li>
+                    <li>Clash API support</li>
+                </ul>
+                <p class="mb-2">📝 Notes</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Duplicate accounts are not allowed</li>
+                    <li>Support Sing-box version 1.11.7</li>
+                </ul>
+            </div>
+            
+            {% if error %}
+            <div class="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-lg mb-6">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                <div class="mb-6">
+                    <label for="input_text" class="block font-semibold mb-2">Input Configuration(s):</label>
+                    <textarea 
+                        id="input_text" 
+                        name="input_text" 
+                        rows="10" 
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono"
+                        placeholder="Paste your VPN configurations here (one per line)..."
+                    >{{ input_text }}</textarea>
+                </div>
+                
+                <div class="flex justify-center space-x-4 mb-6">
+                    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-lg transition-colors">
+                        Convert to Sing-box
+                    </button>
+                    <button 
+                        type="button" 
+                        class="px-6 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-lg transition-colors"
+                        onclick="document.getElementById('input_text').value = ''; document.getElementById('result').value = '';"
+                    >
+                        Clear
+                    </button>
+                </div>
+                
+                {% if result %}
+                <div class="mt-8">
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="result" class="block font-semibold">Sing-box Configuration:</label>
+                        <button 
+                            type="button" 
+                            class="px-4 py-1 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 text-white rounded-lg transition-colors"
+                            onclick="copyToClipboard()"
+                        >
+                            Copy
+                        </button>
+                    </div>
+                    <textarea 
+                        id="result" 
+                        readonly 
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono min-h-[300px]"
+                    >{{ result }}</textarea>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <footer class="max-w-4xl mx-auto p-5 border-t border-gray-200 dark:border-gray-700">
+        <p class="text-center text-gray-600 dark:text-gray-400">
+            &copy; 2025 
+            <a href="https://t.me/Yumi_yui" target="_blank" class="text-red-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              Yumi
+            </a>. All rights reserved.
+          </p>
+          
+        <div class="flex justify-center space-x-8 mt-4">
+            <a href="https://www.instagram.com/mayumi_wandi" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-2xl transition-colors" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://t.me/Yumi_yui" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-2xl transition-colors" aria-label="Telegram">
+                <i class="fab fa-telegram"></i>
+            </a>
+            <a href="https://github.com/mayumiwandi" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-2xl transition-colors" aria-label="GitHub">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://www.tiktok.com/@python_yumi" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-2xl transition-colors" aria-label="TikTok">
+                <i class="fab fa-tiktok"></i>
+            </a>
+        </div>
+    </footer>
+    
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // Check for saved theme preference or use preferred color scheme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // Toggle theme
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        
+        function copyToClipboard() {
+            const resultTextarea = document.getElementById('result');
+            resultTextarea.select();
+            document.execCommand('copy');
+            
+            // Show a temporary notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg';
+            notification.textContent = 'Copied to clipboard!';
+            document.body.appendChild(notification);
+            
+            // Remove notification after 2 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
