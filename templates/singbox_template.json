@@ -1,0 +1,182 @@
+{
+    "log": {
+        "disabled": true,
+        "level": "debug",
+        "output": "Nekobox.log",
+        "timestamp": true
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "google-dns",
+                "address": "tls://dns.google",
+                "address_resolver": "dns-local",
+                "address_strategy": "prefer_ipv4",
+                "strategy": "ipv4_only",
+                "detour": "🚀 Latency"
+            },
+            {
+                "tag": "cloudflare-dns",
+                "address": "https://cloudflare-dns.com/dns-query",
+                "address_resolver": "dns-local",
+                "address_strategy": "prefer_ipv4",
+                "strategy": "ipv4_only",
+                "detour": "🌐 Internet"
+            },
+            {
+                "tag": "dns-local",
+                "address": "local",
+                "address_resolver": "local",
+                "address_strategy": "prefer_ipv4",
+                "strategy": "ipv4_only"
+            },
+            {
+                "tag": "block-dns",
+                "address": "rcode://success",
+                "detour": "block"
+            }
+        ],
+        "rules": [
+            {
+                "domain": [
+                    "plus-store.naver.com",
+                    "ava.game.naver.com",
+                    "investor.fb.com",
+                    "investors.spotify.com",
+                    "nontontv.vidio.com",
+                    "support.vidio.com",
+                    "img.email2.vidio.com",
+                    "quiz.int.vidio.com",
+                    "quiz.vidio.com"
+                ],
+                "server": "dns-local"
+            },
+            {
+                "network": "udp",
+                "port": 443,
+                "action": "reject",
+                "method": "drop"
+            },
+            {
+                "domain": [
+                    
+                ],
+                "server": "google-dns",
+                "action": "route"
+            },
+            {
+                "outbound": "🚀 Latency",
+                "server": "google-dns",
+                "rewrite_ttl": 7200
+            },
+            {
+                "outbound": "🌐 Internet",
+                "server": "cloudflare-dns",
+                "rewrite_ttl": 7200
+            }
+        ],
+        "strategy": "ipv4_only",
+        "independent_cache": true
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "tunelm0n",
+            "mtu": 1590,
+            "address": [
+                "172.18.0.1/30",
+                "fdfe:dcba:9876::1/126"
+            ],
+            "auto_route": true,
+            "strict_route": true,
+            "stack": "gvisor",
+            "sniff": true,
+            "endpoint_independent_nat": true
+        },
+        {
+            "type": "mixed",
+            "tag": "mixed-in",
+            "listen": "0.0.0.0",
+            "listen_port": 2080,
+            "tcp_fast_open": true,
+            "sniff": true,
+            "sniff_override_destination": true
+        },
+        {
+            "type": "socks",
+            "tag": "socks-in",
+            "listen": "0.0.0.0",
+            "listen_port": 2082,
+            "tcp_fast_open": true
+        },
+        {
+            "type": "direct",
+            "tag": "direct-in",
+            "override_address": "112.215.203.246",
+            "override_port": 53
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "selector",
+            "tag": "🌐 Internet",
+            "outbounds": [
+                "🚀 Latency",
+                "direct-out",
+                
+            ],
+            "default": "🚀 Latency"
+        },
+        {
+            "type": "urltest",
+            "tag": "🚀 Latency",
+            "outbounds": [
+
+                
+            ],
+            "url": "https://connectivitycheck.gstatic.com/generate_204",
+            "interval": "1m30s",
+            "tolerance": 60,
+            "idle_timeout": "5m0s"
+        },
+        {
+            "type": "direct",
+            "tag": "direct-out"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        },
+        
+    ],
+    "route": {
+        "rules": [
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "protocol": "dns"
+                    },
+                    {
+                        "port": 53
+                    }
+                ],
+                "action": "hijack-dns"
+            }
+        ],
+        "final": "🌐 Internet",
+        "auto_detect_interface": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:9090",
+            "external_ui": "dist",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip",
+            "external_ui_download_detour": "🌐 Internet",
+            "default_mode": "rule",
+            "access_control_allow_origin": "*"
+        }
+    }
+}
