@@ -1,110 +1,220 @@
 {
     "log": {
-        "disabled": true,
-        "level": "debug",
-        "output": "Nekobox.log",
-        "timestamp": true
+      "level": "warn",
+      "output": "Nekobox.log",
+      "timestamp": true
     },
     "dns": {
-        "servers": [
-            {
-                "tag": "google-dns",
-                "address": "tls://dns.google",
-                "address_resolver": "dns-local",
-                "address_strategy": "prefer_ipv4",
-                "strategy": "ipv4_only",
-                "detour": "🚀 Latency"
-            },
-            {
-                "tag": "cloudflare-dns",
-                "address": "https://cloudflare-dns.com/dns-query",
-                "address_resolver": "dns-local",
-                "address_strategy": "prefer_ipv4",
-                "strategy": "ipv4_only",
-                "detour": "🌐 Internet"
-            },
-            {
-                "tag": "dns-local",
-                "address": "local",
-                "address_resolver": "local",
-                "address_strategy": "prefer_ipv4",
-                "strategy": "ipv4_only"
-            },
-            {
-                "tag": "block-dns",
-                "address": "rcode://success",
-                "detour": "block"
-            }
+      "servers": [
+        {
+          "tag": "google-dns",
+          "address": "tls://dns.google",
+          "address_resolver": "dns-local",
+          "address_strategy": "prefer_ipv4",
+          "strategy": "ipv4_only",
+          "detour": "Latency"
+        },
+        {
+          "tag": "dns-local",
+          "address": "local",
+          "address_resolver": "local",
+          "address_strategy": "prefer_ipv4",
+          "strategy": "ipv4_only"
+        },
+        {
+          "tag": "block-dns",
+          "address": "rcode://success",
+          "detour": "block"
+        }
+      ],
+      "rules": [
+        {
+          "domain": [
+          "plus-store.naver.com",
+          "ava.game.naver.com",
+          "investor.fb.com",
+          "investors.spotify.com",
+          "nontontv.vidio.com",
+          "support.vidio.com",
+          "img.email2.vidio.com",
+          "quiz.int.vidio.com",
+          "quiz.vidio.com"
+            
+          ],
+          "server": "dns-local"
+        },
+        {
+          "outbound": "Latency",
+          "server": "google-dns",
+          "rewrite_ttl": 600
+        },
+        {
+          "outbound": "Region",
+          "server": "google-dns",
+          "rewrite_ttl": 600
+        },
+        {
+          "outbound": "Ads-Ops",
+          "server": "block-dns"
+        }
+      ],
+      "strategy": "ipv4_only",
+      "independent_cache": true
+    },
+    "inbounds": [
+      {
+        "type": "tun",
+        "tag": "tun-in",
+        "interface_name": "tun0",
+        "mtu": 1490,
+        "address": [
+          "172.18.0.1/30",
+          "fdfe:dcba:9876::1/126"
         ],
-        "rules": [
+        "auto_route": true,
+        "strict_route": true,
+        "stack": "gvisor",
+        "sniff": true,
+        "endpoint_independent_nat": true
+      },
+      {
+        "type": "mixed",
+        "tag": "mixed-in",
+        "listen": "0.0.0.0",
+        "listen_port": 2080,
+        "sniff": true,
+        "sniff_override_destination": true
+      }
+    ],
+    "outbounds": [
+      {
+        "type": "selector",
+        "tag": "Internet",
+        "outbounds": [
+          "Latency",
+          "Manual"
+        ],
+        "default": "Latency"
+      },
+      {
+        "type": "urltest",
+        "tag": "Latency",
+        "outbounds": [],
+        "url": "https://detectportal.firefox.com/success.txt",
+        "interval": "1m0s",
+        "tolerance": 50,
+        "idle_timeout": "5m0s"
+      },
+      
+      {
+        "type": "selector",
+        "tag": "Manual",
+        "outbounds": []
+        
+      },
+      {
+        "type": "selector",
+        "tag": "Ads-Ops",
+        "outbounds": [
+          "block",
+          "Internet"
+        ],
+        "default": "block"
+      },
+      {
+        "type": "direct",
+        "tag": "direct-out"
+      },
+      {
+        "type": "block",
+        "tag": "block"
+      }
+    ],
+    "route": {
+      "rules": [
+        {
+          "type": "logical",
+          "mode": "or",
+          "rules": [
             {
-                "domain": [
-                    "plus-store.naver.com",
-                    "ava.game.naver.com",
-                    "investor.fb.com",
-                    "investors.spotify.com",
-                    "nontontv.vidio.com",
-                    "support.vidio.com",
-                    "img.email2.vidio.com",
-                    "quiz.int.vidio.com",
-                    "quiz.vidio.com"
-                ],
-                "server": "dns-local"
+              "protocol": "dns"
             },
             {
-                "network": "udp",
-                "port": 443,
-                "action": "reject",
-                "method": "drop"
-            },
-            {
-                "domain": [
-               
-                    
-                    
-                ],
-                "server": "google-dns",
-                "action": "route"
-            },
-            {
-                "outbound": "🚀 Latency",
-                "server": "google-dns",
-                "rewrite_ttl": 7200
-            },
-            {
-                "outbound": "🔞 Porn",
-                "server": "block-dns"
-            },
-            {
-                "outbound": "🎯 Ads",
-                "server": "block-dns"
-            },
-            {
-                "rule_set": [
-                    "geosite-facebook1",
-                    "geosite-facebook3",
-                    "facebook-dev",
-                    "facebook-ipcidr",
-                    "geosite-instagram",
-                    "geosite-discord",
-                    "geosite-tiktok",
-                    "AS32934",
-                    "Google-AS15169",
-                    "google-ipcidr",
-                    "google-scholar",
-                    "speedtest",
-                    "messenger"
-                ],
-                "outbound": "🌐 Internet",
-                "action": "route",
-                "server": "dns-local",
-                "rewrite_ttl": 7200
-            },
-            {
-                "domain_suffix": [
-                    "dailymotion.com",
-                    "dm-event.net",
-                    "dmcdn.net",
+              "port": 53
+            }
+          ],
+          "action": "hijack-dns"
+        },
+        {
+          "rule_set": [
+            "geosite-rule-ads",
+            "Ads-Adaway",
+            "Ads-Abpindo",
+            "Ads-PornIndo"
+          ],
+          "outbound": "Ads-Ops"
+        },
+        {
+          "domain": "youtube.com",
+          "geosite": "id",
+          "geoip": "id",
+          "outbound": "Internet"
+        },
+        {
+          "source_ip_cidr": [
+            "224.0.0.0/3",
+            "ff00::/8"
+          ],
+          "ip_cidr": [
+            "224.0.0.0/3",
+            "ff00::/8"
+          ],
+          "outbound": "block"
+        }
+      ],
+      "rule_set": [
+        {
+          "type": "remote",
+          "tag": "geosite-rule-ads",
+          "format": "binary",
+          "url": "https://github.com/dickymuliafiqri/sing-box-examples/releases/download/latest/geosite-rule-ads.srs",
+          "download_detour": "Internet"
+        },
+        {
+          "type": "remote",
+          "tag": "Ads-Adaway",
+          "format": "binary",
+          "url": "https://github.com/Mayumiwandi/Lecilia/raw/refs/heads/main/Sing-box/adaway.srs",
+          "download_detour": "Internet"
+        },
+        {
+          "type": "remote",
+          "tag": "Ads-Abpindo",
+          "format": "binary",
+          "url": "https://github.com/Mayumiwandi/Lecilia/raw/refs/heads/main/Sing-box/abpindo.srs",
+          "download_detour": "Internet"
+        },
+        {
+          "type": "remote",
+          "tag": "Ads-PornIndo",
+          "format": "binary",
+          "url": "https://github.com/Mayumiwandi/Lecilia/raw/refs/heads/main/Sing-box/pornholeindo.srs",
+          "download_detour": "Internet"
+        }
+      ],
+      "final": "Internet",
+      "auto_detect_interface": true
+    },
+    "experimental": {
+      "clash_api": {
+        "external_controller": "172.0.0.1:9090",
+        "external_ui": "zashboard",
+        "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip",
+        "external_ui_download_detour": "Internet",
+        "default_mode": "rule"
+      }
+    }
+  }                    "dmcdn.net",
                     "maki.my.id",
                     "kuramanime.run",
                     "filemoon.sx",
